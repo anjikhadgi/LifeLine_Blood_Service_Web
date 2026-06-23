@@ -1,245 +1,64 @@
-import LoginForm from "../_components/LoginForm";
- 
+"use client"
+import Image from 'next/image';
+import LoginForm from '../_components/LoginForm';
+import Header from '@/app/(public)/_components/Header';
+
 export default function LoginPage() {
+  return (
+    <div className="relative min-h-screen overflow-hidden bg-slate-950">
+      <div className="absolute inset-0">
+        <Image
+          src="/images/loginpagebg.png"
+          alt="Medical staff drawing blood"
+          fill
+          className="object-cover"
+          priority
+        />
+        <div className="absolute inset-0 bg-slate-950/75" />
+        <div className="absolute -left-24 top-20 h-72 w-72 rounded-full bg-red-500/20 blur-3xl" />
+        <div className="absolute right-0 top-32 h-96 w-96 rounded-full bg-cyan-400/10 blur-3xl" />
+      </div>
 
-  return <LoginForm />;
+      <div className="relative z-10">
+        <Header />
 
+        <main className="flex min-h-[calc(100vh-72px)] items-center px-4 py-10 sm:px-6 lg:px-8">
+          <div className="mx-auto grid w-full max-w-7xl gap-10 lg:grid-cols-[1.05fr_0.95fr] lg:items-center">
+            <section className="hidden lg:block">
+              <div className="max-w-2xl space-y-6 text-white">
+                <div className="inline-flex items-center rounded-full border border-white/15 bg-white/10 px-4 py-1 text-xs font-semibold uppercase tracking-[0.24em] text-white/80 backdrop-blur">
+                  LifeLine Blood Service
+                </div>
+                <h1 className="max-w-xl text-5xl font-semibold tracking-tight text-white xl:text-6xl">
+                  A faster way to connect blood donors with the people who need them.
+                </h1>
+                <p className="max-w-xl text-lg leading-8 text-white/75">
+                  Use a secure account to manage donations, track requests, and coordinate with your organization in one place.
+                </p>
+
+                <div className="grid max-w-xl gap-4 sm:grid-cols-3">
+                  <div className="rounded-2xl border border-white/10 bg-white/8 p-4 backdrop-blur-md">
+                    <div className="text-2xl font-semibold text-white">24/7</div>
+                    <div className="mt-1 text-sm text-white/70">Support availability</div>
+                  </div>
+                  <div className="rounded-2xl border border-white/10 bg-white/8 p-4 backdrop-blur-md">
+                    <div className="text-2xl font-semibold text-white">Secure</div>
+                    <div className="mt-1 text-sm text-white/70">Role-based access</div>
+                  </div>
+                  <div className="rounded-2xl border border-white/10 bg-white/8 p-4 backdrop-blur-md">
+                    <div className="text-2xl font-semibold text-white">Fast</div>
+                    <div className="mt-1 text-sm text-white/70">Donation workflow</div>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            <div className="flex justify-center lg:justify-end">
+              <LoginForm />
+            </div>
+          </div>
+        </main>
+      </div>
+    </div>
+  );
 }
- 
-
-// "use client";
-
-// import { useState } from "react";
-// import Link from "next/link";
-// import { useRouter } from "next/navigation";
-
-// export default function LoginPage() {
-//   const router = useRouter();
-
-//   const [userType, setUserType] = useState("donor");
-//   const [showPassword, setShowPassword] = useState(false);
-//   const [isLoading, setIsLoading] = useState(false);
-
-//   const [formData, setFormData] = useState({
-//     email: "",
-//     password: "",
-//   });
-
-//   const [errors, setErrors] = useState({
-//     email: "",
-//     password: "",
-//   });
-
-//   const handleChange = (
-//     e: React.ChangeEvent<HTMLInputElement>
-//   ) => {
-//     setFormData({
-//       ...formData,
-//       [e.target.name]: e.target.value,
-//     });
-//   };
-
-//   const validate = () => {
-//     let tempErrors = {
-//       email: "",
-//       password: "",
-//     };
-
-//     let valid = true;
-
-//     if (!formData.email) {
-//       tempErrors.email = "Email is required";
-//       valid = false;
-//     }
-
-//     if (!formData.password) {
-//       tempErrors.password = "Password is required";
-//       valid = false;
-//     }
-
-//     setErrors(tempErrors);
-//     return valid;
-//   };
-
-//   const onSubmit = async (
-//     e: React.FormEvent<HTMLFormElement>
-//   ) => {
-//     e.preventDefault();
-
-//     if (!validate()) return;
-
-//     try {
-//       setIsLoading(true);
-
-//       console.log("Login Data:", {
-//         ...formData,
-//         userType,
-//       });
-
-//       setTimeout(() => {
-//         alert("Login Successful!");
-//         router.push("/");
-//       }, 1000);
-//     } catch (error) {
-//       alert("Login Failed");
-//     } finally {
-//       setIsLoading(false);
-//     }
-//   };
-
-//   return (
-//     <div
-//       className="relative min-h-screen bg-cover bg-center bg-no-repeat flex items-center justify-center px-4"
-//       style={{
-//         backgroundImage: "url('/background.jpeg')",
-//       }}
-//     >
-//       {/* Dark Overlay */}
-//       <div className="absolute inset-0 bg-black/50"></div>
-
-//       {/* Login Card */}
-//       <div className="relative w-full max-w-md bg-white/20 backdrop-blur-lg border border-white/30 rounded-3xl shadow-2xl p-8">
-
-//         {/* Heading */}
-//         <div className="text-center mb-7">
-//           <h1 className="text-4xl font-bold text-white">
-//             Welcome Back
-//           </h1>
-//           <p className="text-gray-200 mt-2">
-//             Login to continue
-//           </p>
-//         </div>
-
-//         {/* User Type */}
-//         <div className="flex rounded-xl bg-white/20 p-1 mb-6">
-//           <button
-//             type="button"
-//             onClick={() => setUserType("donor")}
-//             className={`flex-1 py-2 rounded-lg transition font-medium ${
-//               userType === "donor"
-//                 ? "bg-blue-600 text-white"
-//                 : "text-white"
-//             }`}
-//           >
-//             Donor
-//           </button>
-
-//           <button
-//             type="button"
-//             onClick={() =>
-//               setUserType("organization")
-//             }
-//             className={`flex-1 py-2 rounded-lg transition font-medium ${
-//               userType === "organization"
-//                 ? "bg-blue-600 text-white"
-//                 : "text-white"
-//             }`}
-//           >
-//             Organization
-//           </button>
-//         </div>
-
-//         <form
-//           onSubmit={onSubmit}
-//           className="space-y-5"
-//         >
-//           {/* Email */}
-//           <div>
-//             <label className="block mb-2 text-sm font-medium text-white">
-//               Email
-//             </label>
-
-//             <input
-//               type="email"
-//               name="email"
-//               placeholder="Enter email"
-//               value={formData.email}
-//               onChange={handleChange}
-//               className="w-full bg-white/80 border border-white/40 rounded-xl px-4 py-3 outline-none focus:border-blue-500 text-gray-800"
-//             />
-
-//             {errors.email && (
-//               <p className="text-red-300 text-sm mt-1">
-//                 {errors.email}
-//               </p>
-//             )}
-//           </div>
-
-//           {/* Password */}
-//           <div>
-//             <label className="block mb-2 text-sm font-medium text-white">
-//               Password
-//             </label>
-
-//             <div className="relative">
-//               <input
-//                 type={
-//                   showPassword
-//                     ? "text"
-//                     : "password"
-//                 }
-//                 name="password"
-//                 placeholder="Enter password"
-//                 value={formData.password}
-//                 onChange={handleChange}
-//                 className="w-full bg-white/80 border border-white/40 rounded-xl px-4 py-3 outline-none focus:border-blue-500 text-gray-800"
-//               />
-
-//               <button
-//                 type="button"
-//                 onClick={() =>
-//                   setShowPassword(
-//                     !showPassword
-//                   )
-//                 }
-//                 className="absolute right-4 top-3"
-//               >
-//                 {showPassword
-//                   ? "🙈"
-//                   : "👁️"}
-//               </button>
-//             </div>
-
-//             {errors.password && (
-//               <p className="text-red-300 text-sm mt-1">
-//                 {errors.password}
-//               </p>
-//             )}
-//           </div>
-
-//           {/* Forgot */}
-//           <div className="text-right">
-//             <Link
-//               href="/forgot-password"
-//               className="text-sm text-blue-200 hover:underline"
-//             >
-//               Forgot Password?
-//             </Link>
-//           </div>
-
-//           {/* Button */}
-//           <button
-//             type="submit"
-//             disabled={isLoading}
-//             className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-xl font-semibold transition"
-//           >
-//             {isLoading
-//               ? "Logging in..."
-//               : "Login"}
-//           </button>
-//         </form>
-
-//         {/* Register */}
-//         <p className="text-center text-gray-200 text-sm mt-6">
-//           Don’t have an account?{" "}
-//           <Link
-//             href="/register"
-//             className="text-blue-300 font-semibold hover:underline"
-//           >
-//             Register
-//           </Link>
-//         </p>
-//       </div>
-//     </div>
-//   );
-// }
