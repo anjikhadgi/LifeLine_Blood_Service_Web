@@ -1,238 +1,211 @@
 "use client";
- 
-import Link from "next/link";
 
 import { useState } from "react";
-
+import Link from "next/link";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { loginSchema, LoginSchemaType } from "../schema";
 import { useRouter } from "next/navigation";
+import { handleLogin } from "@/lib/actions/auth-action";
+import { toast } from "react-hot-toast";
 
-import { loginAction } from "../../../lib/actions/auth-action";
-
-import { LoginFormValues, validateLoginForm } from "./schema";
- 
 export default function LoginForm() {
-
   const router = useRouter();
- 
-  const [formData, setFormData] = useState<LoginFormValues>({
-
-    email: "",
-
-    password: "",
-
-    role: "donor",
-
-  });
- 
+  const [userType, setUserType] = useState<"donor" | "organization">("donor");
   const [showPassword, setShowPassword] = useState(false);
-
-  const [error, setError] = useState("");
-
   const [isLoading, setIsLoading] = useState(false);
- 
-  const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
 
-    setFormData({
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<LoginSchemaType>({
+    resolver: zodResolver(loginSchema),
+  });
 
-      ...formData,
-
-      [event.target.name]: event.target.value,
-
-    });
- 
-    setError("");
-
-  };
- 
-  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
-
-    event.preventDefault();
- 
-    const validationError = validateLoginForm(formData);
- 
-    if (validationError) {
-
-      setError(validationError);
-
-      return;
-
+  const onSubmit = async (data: LoginSchemaType) => {
+    try {
+      setIsLoading(true);
+      const response = await handleLogin(data, userType);
+      console.log("Login response:", response);
+      console.log("Response data:", response?.data);
+      
+      if (response && response.success) {
+        toast.success(response.message || "Login successful!");
+        
+        // The response structure is: response.data contains the full API response
+        // which has { success, message, token, data: { user object } }
+        const apiResponse = response.data;
+        
+        if (apiResponse && apiResponse.data) {
+          // Store user data and token in localStorage
+          localStorage.setItem('user', JSON.stringify(apiResponse.data));
+          localStorage.setItem('auth_token', apiResponse.token);
+          
+          const user = apiResponse.data;
+          console.log("User data:", user);
+          console.log("User role:", user.role);
+          console.log("User type:", user.userType);
+          
+          // Redirect based on role and userType
+          if (user.role === 'admin') {
+            console.log("Redirecting to /admin");
+            router.push('/admin');
+          } else if (user.userType === 'donor') {
+            console.log("Redirecting to /donor/dashboard");
+            router.push('/donor/dashboard');
+          } else if (user.userType === 'organization') {
+            console.log("Redirecting to /organization/dashboard");
+            router.push('/organization/dashboard');
+          } else {
+            console.log("Redirecting to /");
+            router.push('/');
+          }
+        } else {
+          console.log("No user data, redirecting to /");
+          router.push('/');
+        }
+      } else {
+        toast.error(response?.message || "Login failed. Please try again.");
+      }
+    } catch (error: any) {
+      console.error("Login error:", error);
+      toast.error(error.message || "Login failed. Please try again.");
+    } finally {
+      setIsLoading(false);
     }
- 
-    setIsLoading(true);
- 
-    const response = await loginAction({
-
-      email: formData.email,
-
-      password: formData.password,
-
-      role: formData.role,
-
-    });
- 
-    setIsLoading(false);
- 
-    if (response?.success === false) {
-
-      setError(response.message || "Login failed");
-
-      return;
-
-    }
- 
-    router.push("/dashboard");
-
   };
- 
+
   return (
-<main className="flex min-h-screen items-center justify-center bg-[url('/background.jpeg')] bg-cover bg-center px-4 py-8">
-<div className="w-full max-w-lg rounded-3xl border border-white/30 bg-slate-500/65 px-8 py-10 text-white shadow-2xl backdrop-blur-md">
-<h1 className="text-center text-4xl font-bold tracking-wider">
+    <div className="w-full max-w-xl">
+      <div className="overflow-hidden rounded-[2rem] border border-white/40 bg-white/85 shadow-[0_25px_90px_rgba(15,23,42,0.32)] backdrop-blur-2xl">
+        <div className="border-b border-white/60 bg-gradient-to-r from-red-600/15 via-white/60 to-cyan-500/10 px-6 py-5 sm:px-8">
+          <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-red-500/15 bg-white/80 px-3 py-1 text-xs font-semibold uppercase tracking-[0.22em] text-red-700 shadow-sm">
+            Secure login
+          </div>
+          <h1 className="text-3xl font-semibold tracking-tight text-slate-900 sm:text-4xl">
+            LifeLine Blood Service
+          </h1>
+          <p className="mt-2 max-w-md text-sm leading-6 text-slate-600 sm:text-base">
+            Sign in to manage donations, requests, and your account dashboard.
+          </p>
+        </div>
 
-          Welcome Back
-</h1>
- 
-        <p className="mt-3 text-center text-lg text-gray-100">
-
-          Login to continue
-</p>
- 
-        <div className="mt-8 grid grid-cols-2 rounded-xl bg-white/20 p-1">
-<button
-
-            type="button"
-
-            onClick={() => setFormData({ ...formData, role: "donor" })}
-
-            className={`rounded-lg py-3 text-base font-medium transition ${
-
-              formData.role === "donor"
-
-                ? "bg-blue-600 text-white"
-
-                : "text-white hover:bg-white/10"
-
-            }`}
->
-
-            Donor
-</button>
- 
-          <button
-
-            type="button"
-
-            onClick={() => setFormData({ ...formData, role: "organization" })}
-
-            className={`rounded-lg py-3 text-base font-medium transition ${
-
-              formData.role === "organization"
-
-                ? "bg-blue-600 text-white"
-
-                : "text-white hover:bg-white/10"
-
-            }`}
->
-
-            Organization
-</button>
-</div>
- 
-        {error && (
-<p className="mt-5 rounded-lg border border-red-300/40 bg-red-600/30 px-4 py-3 text-center text-sm text-red-100">
-
-            {error}
-</p>
-
-        )}
- 
-        <form onSubmit={handleSubmit} className="mt-7 space-y-5">
-<div>
-<label className="mb-2 block text-base text-white">Email</label>
-<input
-
-              type="email"
-
-              name="email"
-
-              placeholder="Enter email"
-
-              value={formData.email}
-
-              onChange={handleChange}
-
-              className="h-14 w-full rounded-lg bg-gray-100 px-5 text-base text-black outline-none placeholder:text-gray-500"
-
-            />
-</div>
- 
-          <div>
-<label className="mb-2 block text-base text-white">Password</label>
- 
-            <div className="relative">
-<input
-
-                type={showPassword ? "text" : "password"}
-
-                name="password"
-
-                placeholder="Enter password"
-
-                value={formData.password}
-
-                onChange={handleChange}
-
-                className="h-14 w-full rounded-lg bg-gray-100 px-5 pr-12 text-base text-black outline-none placeholder:text-gray-500"
-
-              />
- 
+        <div className="px-6 py-6 sm:px-8 sm:py-8">
+          <div className="mb-6 rounded-2xl border border-slate-200 bg-slate-50/80 p-1 shadow-inner">
+            <div className="grid grid-cols-2 gap-1">
               <button
-
                 type="button"
+                onClick={() => setUserType("donor")}
+                aria-pressed={userType === "donor"}
+                className={`rounded-[1rem] px-4 py-3 text-left transition-all duration-200 ${
+                  userType === "donor"
+                    ? "bg-white text-slate-900 shadow-lg shadow-red-100 ring-1 ring-red-200"
+                    : "text-slate-500 hover:bg-white/70 hover:text-slate-900"
+                }`}
+              >
+                <span className="block text-sm font-semibold">Blood Donor</span>
+                <span className="mt-0.5 block text-xs text-slate-500">Access donor tools and appointments</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setUserType("organization")}
+                aria-pressed={userType === "organization"}
+                className={`rounded-[1rem] px-4 py-3 text-left transition-all duration-200 ${
+                  userType === "organization"
+                    ? "bg-white text-slate-900 shadow-lg shadow-red-100 ring-1 ring-red-200"
+                    : "text-slate-500 hover:bg-white/70 hover:text-slate-900"
+                }`}
+              >
+                <span className="block text-sm font-semibold">Organization</span>
+                <span className="mt-0.5 block text-xs text-slate-500">Manage campaigns and blood requests</span>
+              </button>
+            </div>
+          </div>
 
-                onClick={() => setShowPassword(!showPassword)}
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+            <div>
+              <label className="mb-2 block text-sm font-semibold text-slate-700">
+                Email Address
+              </label>
+              <div className="relative">
+                <input
+                  type="email"
+                  placeholder="Enter your email"
+                  {...register("email")}
+                  className={`w-full rounded-2xl border px-4 py-3.5 pr-11 text-slate-900 outline-none transition focus:ring-4 focus:ring-red-500/10 ${
+                    errors.email
+                      ? "border-red-300 bg-red-50/70"
+                      : "border-slate-200 bg-white/90 hover:border-slate-300"
+                  }`}
+                />
+                <span className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-slate-400">
+                  @
+                </span>
+              </div>
+              {errors.email && (
+                <p className="mt-1.5 text-sm text-red-600">{errors.email.message}</p>
+              )}
+            </div>
 
-                className="absolute right-4 top-1/2 -translate-y-1/2 text-sm"
->
+            <div>
+              <label className="mb-2 block text-sm font-semibold text-slate-700">
+                Password
+              </label>
+              <div className="relative">
+                <input
+                  type={showPassword ? "text" : "password"}
+                  placeholder="Enter your password"
+                  {...register("password")}
+                  className={`w-full rounded-2xl border px-4 py-3.5 pr-12 text-slate-900 outline-none transition focus:ring-4 focus:ring-red-500/10 ${
+                    errors.password
+                      ? "border-red-300 bg-red-50/70"
+                      : "border-slate-200 bg-white/90 hover:border-slate-300"
+                  }`}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 rounded-full px-2 py-1 text-slate-500 transition hover:bg-slate-100 hover:text-slate-800"
+                  aria-label={showPassword ? "Hide password" : "Show password"}
+                >
+                  {showPassword ? "Hide" : "Show"}
+                </button>
+              </div>
+              {errors.password && (
+                <p className="mt-1.5 text-sm text-red-600">{errors.password.message}</p>
+              )}
+              <div className="mt-3 text-right">
+                <Link
+                  href={`/forgot-password?userType=${userType}`}
+                  className="text-sm font-medium text-red-600 transition hover:text-red-700"
+                >
+                  Forgot Password?
+                </Link>
+              </div>
+            </div>
 
-                👁️
-</button>
-</div>
-</div>
- 
-          <div className="text-right">
-<Link href="#" className="text-sm text-blue-100">
+            <button
+              type="submit"
+              disabled={isLoading}
+              className="group relative w-full overflow-hidden rounded-2xl bg-gradient-to-r from-red-600 via-red-500 to-rose-500 px-5 py-3.5 font-semibold text-white shadow-lg shadow-red-500/25 transition hover:shadow-xl hover:shadow-red-500/30 disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              <span className="relative z-10">
+                {isLoading ? "Logging in..." : "Login to Continue"}
+              </span>
+              <span className="absolute inset-0 -translate-x-full bg-white/15 transition-transform duration-500 group-hover:translate-x-0" />
+            </button>
 
-              Forgot Password?
-</Link>
-</div>
- 
-          <button
-
-            type="submit"
-
-            disabled={isLoading}
-
-            className="h-14 w-full rounded-lg bg-blue-600 text-lg font-bold text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-70"
->
-
-            {isLoading ? "Logging in..." : "Login"}
-</button>
-</form>
- 
-        <p className="mt-7 text-center text-gray-100">
-
-          Don&apos;t have an account?{" "}
-<Link href="/register" className="font-bold text-blue-200">
-
-            Register
-</Link>
-</p>
-</div>
-</main>
-
+            <p className="text-center text-sm text-slate-600">
+              Don&apos;t have an account?{" "}
+              <Link href="/register" className="font-semibold text-red-600 transition hover:text-red-700">
+                Register here
+              </Link>
+            </p>
+          </form>
+        </div>
+      </div>
+    </div>
   );
-
 }
- 
+  

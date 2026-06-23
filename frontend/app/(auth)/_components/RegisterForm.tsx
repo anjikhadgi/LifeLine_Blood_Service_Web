@@ -1,413 +1,200 @@
 "use client";
- 
+
+import { useState, useEffect } from "react";
 import Link from "next/link";
-
-import { useState } from "react";
-
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { registerSchema, RegisterSchemaType } from "../schema";
 import { useRouter } from "next/navigation";
+import { handleRegister } from "@/lib/actions/auth-action";
+import { toast } from "react-hot-toast";
 
-import { registerAction } from "../../../lib/actions/auth-action";
-
-import { RegisterFormValues, validateRegisterForm } from "./schema";
- 
 export default function RegisterForm() {
-
-  const router = useRouter();
- 
-  const [formData, setFormData] = useState<RegisterFormValues>({
-
-    fullName: "",
-
-    bloodGroup: "",
-
-    dateOfBirth: "",
-
-    email: "",
-
-    phoneNumber: "",
-
-    address: "",
-
-    password: "",
-
-    confirmPassword: "",
-
-    role: "donor",
-
-  });
- 
-  const [agree, setAgree] = useState(false);
-
-  const [showPassword, setShowPassword] = useState(false);
-
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-
-  const [error, setError] = useState("");
-
-  const [success, setSuccess] = useState("");
-
-  const [isLoading, setIsLoading] = useState(false);
- 
-  const handleChange = (
-
-    event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
-
-  ) => {
-
-    setFormData({
-
-      ...formData,
-
-      [event.target.name]: event.target.value,
-
-    });
- 
-    setError("");
-
-    setSuccess("");
-
-  };
- 
-  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
-
-    event.preventDefault();
- 
-    const validationError = validateRegisterForm(formData);
- 
-    if (validationError) {
-
-      setError(validationError);
-
-      return;
-
-    }
- 
-    if (!agree) {
-
-      setError("Please agree to Terms & Privacy Policy");
-
-      return;
-
-    }
- 
-    setIsLoading(true);
- 
-    const response = await registerAction({
-
-      fullName: formData.fullName,
-
-      bloodGroup: formData.bloodGroup,
-
-      dateOfBirth: formData.dateOfBirth,
-
-      email: formData.email,
-
-      phoneNumber: formData.phoneNumber,
-
-      address: formData.address,
-
-      password: formData.password,
-      confirmPassword: formData.confirmPassword,
-
-
-      role: formData.role,
-
-    });
- 
-    setIsLoading(false);
- 
-    if (response?.success === false) {
-
-      setError(response.message || "Registration failed");
-
-      return;
-
-    }
- 
-    setSuccess(response?.message || "Account created successfully");
- 
-    setTimeout(() => {
-
-      router.push("/login");
-
-    }, 1000);
-
-  };
- 
-  return (
-<main className="flex min-h-screen items-center justify-center bg-[url('/background.jpeg')] bg-cover bg-center px-4 py-8">
-<div className="w-full max-w-xl rounded-3xl border border-white/30 bg-slate-500/65 px-8 py-9 text-white shadow-2xl backdrop-blur-md">
-<h1 className="text-center text-4xl font-bold tracking-wider">
-
-          Create Account
-</h1>
- 
-        <p className="mt-3 text-center text-lg text-gray-100">
-
-          Join our community
-</p>
- 
-        <div className="mt-8 grid grid-cols-2 rounded-xl bg-white/20 p-1">
-<button
-
-            type="button"
-
-            onClick={() => setFormData({ ...formData, role: "donor" })}
-
-            className={`rounded-lg py-3 text-base font-medium transition ${
-
-              formData.role === "donor"
-
-                ? "bg-blue-600 text-white"
-
-                : "text-white hover:bg-white/10"
-
-            }`}
->
-
-            Donor
-</button>
- 
-          <button
-
-            type="button"
-
-            onClick={() => setFormData({ ...formData, role: "organization" })}
-
-            className={`rounded-lg py-3 text-base font-medium transition ${
-
-              formData.role === "organization"
-
-                ? "bg-blue-600 text-white"
-
-                : "text-white hover:bg-white/10"
-
-            }`}
->
-
-            Organization
-</button>
-</div>
- 
-        {error && (
-<p className="mt-5 rounded-lg border border-red-300/40 bg-red-600/30 px-4 py-3 text-center text-sm text-red-100">
-
-            {error}
-</p>
-
-        )}
- 
-        {success && (
-<p className="mt-5 rounded-lg border border-green-300/40 bg-green-600/30 px-4 py-3 text-center text-sm text-green-100">
-
-            {success}
-</p>
-
-        )}
- 
-        <form onSubmit={handleSubmit} className="mt-7 space-y-4">
-<input
-
-            type="text"
-
-            name="fullName"
-
-            placeholder="Full name"
-
-            value={formData.fullName}
-
-            onChange={handleChange}
-
-            className="h-13 w-full rounded-lg bg-gray-100 px-5 text-base text-black outline-none placeholder:text-gray-500"
-
-          />
- 
-          <div className="grid gap-3 md:grid-cols-2">
-<select
-
-              name="bloodGroup"
-
-              value={formData.bloodGroup}
-
-              onChange={handleChange}
-
-              className="h-13 w-full rounded-lg bg-gray-100 px-4 text-base text-black outline-none"
->
-<option value="">Blood Group</option>
-<option value="A+">A+</option>
-<option value="A-">A-</option>
-<option value="B+">B+</option>
-<option value="B-">B-</option>
-<option value="AB+">AB+</option>
-<option value="AB-">AB-</option>
-<option value="O+">O+</option>
-<option value="O-">O-</option>
-</select>
- 
-            <input
-
-              type="date"
-
-              name="dateOfBirth"
-
-              value={formData.dateOfBirth}
-
-              onChange={handleChange}
-
-              className="h-13 w-full rounded-lg bg-gray-100 px-5 text-base text-black outline-none"
-
-            />
-</div>
- 
-          <input
-
-            type="email"
-
-            name="email"
-
-            placeholder="Email"
-
-            value={formData.email}
-
-            onChange={handleChange}
-
-            className="h-13 w-full rounded-lg bg-gray-100 px-5 text-base text-black outline-none placeholder:text-gray-500"
-
-          />
- 
-          <input
-
-            type="text"
-
-            name="phoneNumber"
-
-            placeholder="Phone Number"
-
-            value={formData.phoneNumber}
-
-            onChange={handleChange}
-
-            className="h-13 w-full rounded-lg bg-gray-100 px-5 text-base text-black outline-none placeholder:text-gray-500"
-
-          />
- 
-          <input
-
-            type="text"
-
-            name="address"
-
-            placeholder="Address"
-
-            value={formData.address}
-
-            onChange={handleChange}
-
-            className="h-13 w-full rounded-lg bg-gray-100 px-5 text-base text-black outline-none placeholder:text-gray-500"
-
-          />
- 
-          <div className="relative">
-<input
-
-              type={showPassword ? "text" : "password"}
-
-              name="password"
-
-              placeholder="Password"
-
-              value={formData.password}
-
-              onChange={handleChange}
-
-              className="h-13 w-full rounded-lg bg-gray-100 px-5 pr-12 text-base text-black outline-none placeholder:text-gray-500"
-
-            />
- 
-            <button
-
-              type="button"
-
-              onClick={() => setShowPassword(!showPassword)}
-
-              className="absolute right-4 top-1/2 -translate-y-1/2 text-sm"
->
-
-              👁️
-</button>
-</div>
- 
-          <div className="relative">
-<input
-
-              type={showConfirmPassword ? "text" : "password"}
-
-              name="confirmPassword"
-
-              placeholder="Confirm Password"
-
-              value={formData.confirmPassword}
-
-              onChange={handleChange}
-
-              className="h-13 w-full rounded-lg bg-gray-100 px-5 pr-12 text-base text-black outline-none placeholder:text-gray-500"
-
-            />
- 
-            <button
-
-              type="button"
-
-              onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-
-              className="absolute right-4 top-1/2 -translate-y-1/2 text-sm"
->
-
-              👁️
-</button>
-
-</div>
- 
-          <label className="flex items-center gap-3 text-sm text-white">
-<input
-
-              type="checkbox"
-
-              checked={agree}
-
-              onChange={(event) => setAgree(event.target.checked)}
-
-              className="h-4 w-4"
-
-            />
-<span>I agree to Terms & Privacy Policy</span>
-</label>
- 
-          <button
-
-            type="submit"
-
-            disabled={isLoading}
-
-            className="h-13 w-full rounded-lg bg-blue-600 text-lg font-bold text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-70"
->
-
-            {isLoading ? "Creating Account..." : "Create Account"}
-</button>
-</form>
- 
-        <p className="mt-6 text-center text-gray-100">
-
-          Already have an account?{" "}
-<Link href="/login" className="font-bold text-blue-200">
-
-            Login
-</Link>
-</p>
-</div>
-</main>
-
-  );
-
+	const router = useRouter();
+	const [userType, setUserType] = useState<"donor" | "organization">("donor");
+	const [showPassword, setShowPassword] = useState(false);
+	const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+	const [isLoading, setIsLoading] = useState(false);
+
+	const {
+		register,
+		handleSubmit,
+		setValue,
+		reset,
+		formState: { errors },
+	} = useForm<RegisterSchemaType>({
+		resolver: zodResolver(registerSchema),
+		shouldUnregister: true,
+		defaultValues: {
+			userType: "donor",
+			terms: false,
+		} as any,
+	});
+
+	useEffect(() => {
+		setValue("userType", userType as any, { shouldValidate: true });
+		reset({ userType, terms: false } as any, {
+			keepErrors: false,
+			keepDirty: false,
+			keepTouched: false,
+		});
+	}, [userType, setValue, reset]);
+
+	const onSubmit = async (data: RegisterSchemaType) => {
+		try {
+			setIsLoading(true);
+			const response = await handleRegister(data);
+			if (response && response.success) {
+				toast.success(response.message || "Account created successfully!");
+				router.push("/login");
+			} else {
+				toast.error(response?.message || "Registration failed. Please try again.");
+			}
+		} catch (error: any) {
+			toast.error(error.message || "Registration failed. Please try again.");
+		} finally {
+			setIsLoading(false);
+		}
+	};
+
+	return (
+		<div className="w-full max-w-xl">
+			<div className="overflow-hidden rounded-[2rem] border border-white/40 bg-white/85 shadow-[0_25px_90px_rgba(15,23,42,0.32)] backdrop-blur-2xl">
+				<div className="border-b border-white/60 bg-gradient-to-r from-red-600/15 via-white/60 to-cyan-500/10 px-6 py-5 sm:px-8">
+					<h1 className="text-3xl font-semibold tracking-tight text-slate-900 sm:text-4xl">Create an account</h1>
+					<p className="mt-2 max-w-md text-sm leading-6 text-slate-600 sm:text-base">Join LifeLineBloodService to manage donations and requests.</p>
+				</div>
+
+				<div className="px-6 py-6 sm:px-8 sm:py-8">
+					<div className="mb-6 rounded-2xl border border-slate-200 bg-slate-50/80 p-1 shadow-inner">
+						<div className="grid grid-cols-2 gap-1">
+							<button
+								type="button"
+								onClick={() => setUserType("donor")}
+								aria-pressed={userType === "donor"}
+								className={`rounded-[1rem] px-4 py-3 text-left transition-all duration-200 ${
+									userType === "donor"
+										? "bg-white text-slate-900 shadow-lg shadow-red-100 ring-1 ring-red-200"
+										: "text-slate-500 hover:bg-white/70 hover:text-slate-900"
+								}`}
+							>
+								<span className="block text-sm font-semibold">Blood Donor</span>
+								<span className="mt-0.5 block text-xs text-slate-500">Personal account</span>
+							</button>
+							<button
+								type="button"
+								onClick={() => setUserType("organization")}
+								aria-pressed={userType === "organization"}
+								className={`rounded-[1rem] px-4 py-3 text-left transition-all duration-200 ${
+									userType === "organization"
+										? "bg-white text-slate-900 shadow-lg shadow-red-100 ring-1 ring-red-200"
+										: "text-slate-500 hover:bg-white/70 hover:text-slate-900"
+								}`}
+							>
+								<span className="block text-sm font-semibold">Organization</span>
+								<span className="mt-0.5 block text-xs text-slate-500">Organization account</span>
+							</button>
+						</div>
+					</div>
+
+					<form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+						<input {...register("userType")} type="hidden" />
+						{userType === "donor" ? (
+							<>
+								<div>
+									<label className="mb-2 block text-sm font-semibold text-slate-700">Full Name</label>
+									<input {...register("fullName")} type="text" placeholder="Your full name" className={`w-full rounded-2xl border px-4 py-3.5 text-slate-900 outline-none ${(errors as any).fullName ? "border-red-300" : "border-slate-200"}`} />
+									{(errors as any).fullName && <p className="mt-1.5 text-sm text-red-600">{(errors as any).fullName.message}</p>}
+								</div>
+
+								<div className="grid grid-cols-2 gap-4">
+									<div>
+										<label className="mb-2 block text-sm font-semibold text-slate-700">Blood Group</label>
+										<select {...register("bloodGroup")} className="w-full rounded-2xl border px-4 py-3 text-slate-900 outline-none border-slate-200">
+											<option value="">Select</option>
+											<option value="A+">A+</option>
+											<option value="A-">A-</option>
+											<option value="B+">B+</option>
+											<option value="B-">B-</option>
+											<option value="AB+">AB+</option>
+											<option value="AB-">AB-</option>
+											<option value="O+">O+</option>
+											<option value="O-">O-</option>
+										</select>
+									</div>
+
+									<div>
+										<label className="mb-2 block text-sm font-semibold text-slate-700">Date of Birth</label>
+										<input {...register("dateOfBirth")} type="date" className="w-full rounded-2xl border px-4 py-3 text-slate-900 outline-none border-slate-200" />
+									</div>
+								</div>
+							</>
+						) : (
+							<>
+								<div>
+									<label className="mb-2 block text-sm font-semibold text-slate-700">Organization Name</label>
+									<input {...register("organizationName")} type="text" placeholder="Organization name" className={`w-full rounded-2xl border px-4 py-3.5 text-slate-900 outline-none ${(errors as any).organizationName ? "border-red-300" : "border-slate-200"}`} />
+									{(errors as any).organizationName && <p className="mt-1.5 text-sm text-red-600">{(errors as any).organizationName.message}</p>}
+								</div>
+								<div>
+									<label className="mb-2 block text-sm font-semibold text-slate-700">Head of Organization</label>
+									<input {...register("headOfOrganization")} type="text" placeholder="Head of organization" className={`w-full rounded-2xl border px-4 py-3.5 text-slate-900 outline-none ${(errors as any).headOfOrganization ? "border-red-300" : "border-slate-200"}`} />
+									{(errors as any).headOfOrganization && <p className="mt-1.5 text-sm text-red-600">{(errors as any).headOfOrganization.message}</p>}
+								</div>
+							</>
+						)}
+
+						<div>
+							<label className="mb-2 block text-sm font-semibold text-slate-700">Email Address</label>
+							<input {...register("email")} type="email" placeholder="you@example.com" className={`w-full rounded-2xl border px-4 py-3.5 text-slate-900 outline-none ${(errors as any).email ? "border-red-300" : "border-slate-200"}`} />
+							{(errors as any).email && <p className="mt-1.5 text-sm text-red-600">{(errors as any).email.message}</p>}
+						</div>
+
+						<div>
+							<label className="mb-2 block text-sm font-semibold text-slate-700">Phone Number</label>
+							<input {...register("phoneNumber")} type="tel" placeholder="Enter phone number" className={`w-full rounded-2xl border px-4 py-3.5 text-slate-900 outline-none ${(errors as any).phoneNumber ? "border-red-300" : "border-slate-200"}`} />
+							{(errors as any).phoneNumber && <p className="mt-1.5 text-sm text-red-600">{(errors as any).phoneNumber.message}</p>}
+						</div>
+
+						<div>
+							<label className="mb-2 block text-sm font-semibold text-slate-700">Address</label>
+							<input {...register("address")} type="text" placeholder="Enter address" className={`w-full rounded-2xl border px-4 py-3.5 text-slate-900 outline-none ${(errors as any).address ? "border-red-300" : "border-slate-200"}`} />
+							{(errors as any).address && <p className="mt-1.5 text-sm text-red-600">{(errors as any).address.message}</p>}
+						</div>
+
+						<div>
+							<label className="mb-2 block text-sm font-semibold text-slate-700">Password</label>
+							<div className="relative">
+								<input {...register("password")} type={showPassword ? "text" : "password"} placeholder="Create a password" className={`w-full rounded-2xl border px-4 py-3.5 pr-12 text-slate-900 outline-none ${(errors as any).password ? "border-red-300" : "border-slate-200"}`} />
+								<button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 rounded-full px-2 py-1 text-slate-500 transition hover:bg-slate-100 hover:text-slate-800">{showPassword ? "Hide" : "Show"}</button>
+							</div>
+							{(errors as any).password && <p className="mt-1.5 text-sm text-red-600">{(errors as any).password.message}</p>}
+						</div>
+
+						<div>
+							<label className="mb-2 block text-sm font-semibold text-slate-700">Confirm Password</label>
+							<div className="relative">
+								<input {...register("confirmPassword")} type={showConfirmPassword ? "text" : "password"} placeholder="Confirm password" className={`w-full rounded-2xl border px-4 py-3.5 pr-12 text-slate-900 outline-none ${(errors as any).confirmPassword ? "border-red-300" : "border-slate-200"}`} />
+								<button type="button" onClick={() => setShowConfirmPassword(!showConfirmPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 rounded-full px-2 py-1 text-slate-500 transition hover:bg-slate-100 hover:text-slate-800">{showConfirmPassword ? "Hide" : "Show"}</button>
+							</div>
+							{(errors as any).confirmPassword && <p className="mt-1.5 text-sm text-red-600">{(errors as any).confirmPassword.message}</p>}
+						</div>
+
+						<div className="flex items-center gap-3">
+							<input {...register("terms")} id="terms" type="checkbox" className="h-4 w-4 rounded border-slate-300 text-red-600 focus:ring-red-500" />
+							<label htmlFor="terms" className="text-sm text-slate-600">I agree to the <Link href="/terms" className="text-red-600 font-medium">Terms of Service</Link></label>
+						</div>
+						{(errors as any).terms && <p className="-mt-2 text-sm text-red-600">{(errors as any).terms.message}</p>}
+
+						<button type="submit" disabled={isLoading} className="group relative w-full overflow-hidden rounded-2xl bg-gradient-to-r from-red-600 via-red-500 to-rose-500 px-5 py-3.5 font-semibold text-white shadow-lg shadow-red-500/25 transition hover:shadow-xl hover:shadow-red-500/30 disabled:cursor-not-allowed disabled:opacity-60">
+							<span className="relative z-10">{isLoading ? "Registering..." : "Create account"}</span>
+							<span className="absolute inset-0 -translate-x-full bg-white/15 transition-transform duration-500 group-hover:translate-x-0" />
+						</button>
+
+						<p className="text-center text-sm text-slate-600">Already have an account? <Link href="/login" className="font-semibold text-red-600">Sign in</Link></p>
+					</form>
+				</div>
+			</div>
+		</div>
+	);
 }
- 
